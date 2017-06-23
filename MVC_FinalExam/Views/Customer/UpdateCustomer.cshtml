@@ -1,0 +1,188 @@
+﻿
+@{
+    ViewBag.Title = "UpdateCustomer";
+    Layout = "~/Views/_LayoutPage1.cshtml";
+}
+
+<div class="container">
+    <div class="tableTitle">
+        <span style="padding:10px">修改客戶</span>
+    </div>
+    <form id="MyForm" data-role="validator" novalidate="novalidate">
+        <table class="table table-bordered" style="table-layout:fixed;">
+            <tr>
+                <td><b>訂單編號</b></td>
+                <td colspan="3">
+                    <spna id="CustomerID" />
+                </td>
+            </tr>
+            <tr>
+                <td><span style="color:red">*</span><b>名稱</b></td>
+                <td colspan="3">
+                    <input id="CompanyName" name="CompanyName" class="k-textbox" required validationMessage="請輸入這個欄位" />
+                </td>
+            </tr>
+            <tr>
+                <td><span style="color:red">*</span><b>聯絡人姓名</b></td>
+                <td colspan="3">
+                    <input id="ContactName" name="ContactName" class="k-textbox" required validationMessage="請輸入這個欄位" />
+                </td>
+            </tr>
+            <tr>
+                <td><span style="color:red">*</span><b>聯絡人職稱</b></td>
+                <td colspan="3">
+                    <input id="ContactTitle" name="ContactTitle" placeholder="-Select-" required validationMessage="請選擇這個欄位" sign-combobox />
+                    <span data-for='ContactTitle' class='k-invalid-msg'></span>
+                </td>
+            </tr>
+            <tr>
+                <td><span style="color:red">*</span><b>建立日期</b></td>
+                <td colspan="3">
+                    <input type="text" id="CreationDate" name="CreationDate" required validationMessage="請選擇這個欄位" />
+                    <span data-for='CreationDate' class='k-invalid-msg'></span>
+                </td>
+            </tr>
+            <tr>
+                <td><span style="color:red">*</span><b>地址</b></td>
+                <td>
+                    <input id="Address" class="k-textbox" name="Address" required validationMessage="請輸入這個欄位" />
+                </td>
+                <td><span style="color:red">*</span><b>城市</b></td>
+                <td>
+                    <input id="City" class="k-textbox" name="City" required validationMessage="請輸入這個欄位" />
+                </td>
+            </tr>
+            <tr>
+                <td><b>區域</b></td>
+                <td>
+                    <input id="Region" class="k-textbox" />
+                </td>
+                <td><b>郵遞區號</b></td>
+                <td>
+                    <input id="PostalCode" class="k-textbox" />
+                </td>
+            </tr>
+            <tr>
+                <td><span style="color:red">*</span><b>國家</b></td>
+                <td>
+                    <input id="Country" class="k-textbox" name="Country" required validationMessage="請輸入這個欄位" />
+                </td>
+                <td><span style="color:red">*</span><b>電話號碼</b></td>
+                <td>
+                    <input id="Phone" name="Phone" class="k-textbox" required validationMessage="請輸入這個欄位" />
+                </td>
+            </tr>
+            <tr>
+                <td><b>傳真</b></td>
+                <td colspan="3">
+                    <input id="Fax" name="Fax" class="k-textbox" />
+                </td>
+            </tr>
+
+            <tr>
+                <td></td>
+                <td colspan="3">
+                    <input id="SaveData" type="button" value="存檔">
+                    <input id="DeleteCustomer" type="button" value="刪除本筆訂單">
+                    <input id="beforePage" type="button" value="回前一頁" />
+                </td>
+
+            </tr>
+        </table>
+    </form>
+</div>
+
+<script>
+    $(document).ready(function () {
+        $.ajax({
+            type: 'post',
+            url: '@Url.Action("UpdateCustomer_getData")',
+            data: {
+                CustomerID: '@ViewBag.UpdateCustomerID'
+            }, success: function (result) {
+                document.getElementById("CustomerID").innerHTML = result.CustomerID;
+                document.getElementById("CompanyName").value = result.CompanyName;
+                document.getElementById("ContactName").value = result.ContactName;
+
+                $("#ContactTitle").data("kendoComboBox").text(result.ContactTitle);
+
+                document.getElementById("CreationDate").value = result.CreationDate;
+                document.getElementById("Address").value = result.Address;
+                document.getElementById("City").value = result.City;
+                document.getElementById("Region").value = result.Region;
+                document.getElementById("PostalCode").value = result.PostalCode;
+                document.getElementById("Country").value = result.Country;
+                document.getElementById("Phone").value = result.Phone;
+                document.getElementById("Fax").value = result.Fax;
+
+            }, error: function () {
+                // document.getElementById("SaveData").disabled = true;
+                // document.getElementById("DeleteEmployee").disabled = true;
+               // alert("請由正常的入口進來。\n將幫您導向查詢頁面。");
+                //location.href = "/Customer/QueryCustomer";
+                alert("error")
+            }
+        });
+
+
+        //Date Validator
+        $(function () {
+            var container = $("#MyForm");
+            kendo.init(container);
+            container.kendoValidator({
+                rules: {
+                    vaildateCombobox: function (input) {
+                        if (input.is("[sign-combobox]")) {
+                            if (input.data("kendoComboBox").selectedIndex == 0) {
+                                return false;
+                            }
+                        }
+                        return true;
+                    }
+                },
+                messages: {
+                    vaildateCombobox: "請選擇這個欄位"
+                }
+            });
+        });
+
+
+        //DataPicker
+        $("#CreationDate").kendoDatePicker({
+            format: "yyyy/MM/dd"
+        });
+
+        //button
+        $("#SaveData").kendoButton();
+        $("#DeleteCustomer").kendoButton();
+        $("#beforePage").kendoButton();
+    });
+
+
+
+    $("#DeleteCustomer").click(function () {
+
+            $.ajax({
+                type: 'post',
+                url: '@Url.Action("QueryPage_Delete")',
+                data: {
+                    CustomerID: $("#CustomerID").text()
+                },
+                success: function () {
+                    alert("ok");
+                    location.href = "/Customer/QueryCustomer";
+                },
+                error: function () {
+                    alert("Delete Error");
+                }
+            });
+    });
+
+
+
+    document.getElementById("beforePage").onclick = function () {
+        location.href = "/Customer/QueryCustomer";
+    };
+
+
+</script>

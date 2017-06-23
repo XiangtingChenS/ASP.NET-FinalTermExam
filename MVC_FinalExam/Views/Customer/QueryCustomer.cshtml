@@ -1,0 +1,183 @@
+﻿
+@{
+    ViewBag.Title = "QueryCustomer";
+    Layout = "~/Views/_LayoutPage1.cshtml";
+}
+
+<div class="container">
+
+    <div class="tableTitle">
+        <span style="padding:10px">客戶資料查詢</span>
+    </div>
+    <table class="table table-bordered">
+        <tr>
+            <td><b>客戶編號</b></td>
+            <td colspan="3">
+                <input id="CustomerID" class="k-textbox" />
+            </td>
+        </tr>
+
+        <tr>
+            <td><b>客戶名稱</b></td>
+            <td colspan="3">
+                <input id="CompanyName" class="k-textbox" />
+            </td>
+        </tr>
+        <tr>
+            <td><b>聯絡人姓名</b></td>
+            <td colspan="3">
+                <input id="ContactName" class="k-textbox" />
+            </td>
+        </tr>
+        <tr>
+            <td><b>聯絡人職稱</b></td>
+            <td colspan="3">
+                <input id="ContactTitle" placeholder="-Select-" />
+            </td>
+        </tr>
+
+
+        <tr>
+            <td></td>
+            <td colspan="3">
+                <input id="MyQuery" type="submit" value="查詢" />
+                <input id="MyClean" type="button" value="清除" />
+                <input id="MyInsertCustomer" type="button" value="新增客戶" />
+            </td>
+
+        </tr>
+    </table>
+
+    <div id="example">
+        <span id="notification" style="display:none;"></span>
+        <div id="grid"></div>
+    </div>
+</div>
+
+<div id="window"></div>
+<script type="text/x-kendo-template" id="windowTemplate">
+    <div style="text-align:center; ">
+        確定要刪除客戶編號 <strong>#= CustomerID #</strong> 號嗎? <br><br>
+        <button class="k-button" id="yesButton">Yes</button>
+        <button class="k-button" id="noButton"> No</button>
+    </div>
+</script>
+
+<script>
+    var windowTemplate = kendo.template($("#windowTemplate").html());
+    $(document).ready(function () {
+        //button
+        $("#MyQuery").kendoButton();
+        $("#MyClean").kendoButton();
+        $("#MyInsertCustomer").kendoButton();
+
+    });
+
+    document.getElementById("MyInsertCustomer").onclick = function () {
+        location.href = "/Customer/InsertCustomer";
+    }
+
+    $("#MyQuery").click(function () {
+        $.ajax({
+            type: 'post',
+            url: '@Url.Action("QueryCustomer")',
+            data: {
+                CustomerID: $('#CustomerID').val(),
+                CompanyName: $('#CompanyName').val(),
+                ContactName: $('#ContactName').val(),
+                ContactTitle: $('#ContactTitle').data("kendoComboBox").value()
+            },
+            success: function (result) {
+                var data = [];
+                $.each(result, function (index, field) {
+                    data.push({ CustomerID: field.CustomerID, CompanyName: field.CompanyName, ContactName: field.ContactName, ContactTitle: field.ContactTitle });
+                });
+               // console.log(data);
+                GenerateGrid(data);
+            },
+            error: function () { alert("Error"); }
+        });
+    });
+
+
+    $("#MyClean").click(function () {
+        document.getElementById("CustomerID").value = "";
+        document.getElementById("CompanyName").value = "";
+        document.getElementById("ContactName").value = "";
+        $("#ContactTitle").data("kendoComboBox").select(0);
+    });
+
+    function GenerateGrid(data) {
+        var dataSource = new kendo.data.DataSource({
+            data: data,
+            pageSize: 10,
+            batch: false,
+            schema: {
+                model: {
+                    fields: {
+                        CustomerID: { type: "int" },
+                        CompanyName: { type: "text" },
+                        ContactName: { type: "text" },
+                        ContactTitle:{ type: "text" }
+                    }
+                }
+            }
+        });
+
+        var grid = $("#grid").kendoGrid({
+            dataSource: dataSource,
+            sortable: true,
+            pageable: true,
+            resizable: true,
+            columns: [
+                { field: "CustomerID", title: "編號" },
+                { field: "CompanyName", title: "名稱" },
+                 { field: "ContactName", title: "聯絡人姓名" },
+                { field: "ContactTitle", title: "聯絡人職稱" },
+                {
+                    command:
+                      [{ name: "edit", text: "編輯", click: RedirectUpdatePage },
+                      {
+                          name: "Delete", text: "刪除",
+                          click: function (e) {
+                                  e.preventDefault();
+                                  var tr = $(e.target).closest("tr");
+                                  var trData = this.dataItem(tr);
+                                   deleteCus(trData.CustomerID);
+                                   grid.dataSource.remove(trData)
+                                   grid.dataSource.sync()
+                          }
+                      }
+                      ]
+                }]
+        }).data("kendoGrid");
+    }
+
+
+    function deleteCus(id)
+    {
+        $.ajax({
+            type: 'post',
+            url: '@Url.Action("QueryPage_Delete")',
+            data: {
+                CustomerID: id
+            },
+            success: function () {
+                alert("ok");
+            },
+            error: function () {
+                alert("Delete Error");
+            }
+        });
+    }
+
+
+    function RedirectUpdatePage(e){
+        var tr = $(e.target).closest("tr");
+        var trData = this.dataItem(tr);
+        window.location.href = "@Url.Action("UpdateCustomer",new { CustomerID = "_ID"})".replace("_ID", trData.CustomerID);
+    }
+</script>
+
+
+

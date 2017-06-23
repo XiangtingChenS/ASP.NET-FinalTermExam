@@ -1,0 +1,158 @@
+﻿
+@{
+    ViewBag.Title = "InsertCustomer";
+    Layout = "~/Views/_LayoutPage1.cshtml";
+}
+
+<div class="container">
+    <div class="tableTitle">
+        <span style="padding:10px">新增客戶</span>
+    </div>
+    <form id="MyForm" data-role="validator" novalidate="novalidate">
+        <table class="table table-bordered" style="table-layout:fixed;">
+            <tr>
+                <td><span style="color:red">*</span><b>名稱</b></td>
+                <td colspan="3">
+                    <input id="CompanyName" name="CompanyName" class="k-textbox" required validationMessage="請輸入這個欄位" />
+                </td>
+            </tr>
+            <tr>
+                <td><span style="color:red">*</span><b>聯絡人姓名</b></td>
+                <td colspan="3">
+                    <input id="ContactName" name="ContactName" class="k-textbox" required validationMessage="請輸入這個欄位" />
+                </td>
+            </tr>
+            <tr>
+                <td><span style="color:red">*</span><b>聯絡人職稱</b></td>
+                <td colspan="3">
+                    <input id="ContactTitle" name="ContactTitle" placeholder="-Select-" required validationMessage="請選擇這個欄位" sign-combobox />
+                    <span data-for='ContactTitle' class='k-invalid-msg'></span>
+                </td>
+            </tr>
+            <tr>
+                <td><span style="color:red">*</span><b>建立日期</b></td>
+                <td colspan="3"> 
+                    <input type="text" id="CreationDate" name="CreationDate" required validationMessage="請選擇這個欄位" />
+                    <span data-for='CreationDate' class='k-invalid-msg'></span>
+                </td>
+            </tr>
+            <tr>
+                <td><span style="color:red">*</span><b>地址</b></td>
+                <td>
+                    <input id="Address" class="k-textbox" name="Address" required validationMessage="請輸入這個欄位" />
+                </td>
+                <td><span style="color:red">*</span><b>城市</b></td>
+                <td>
+                    <input id="City" class="k-textbox" name="City" required validationMessage="請輸入這個欄位" />
+                </td>
+            </tr>
+            <tr>
+                <td><b>區域</b></td>
+                <td>
+                    <input id="Region" class="k-textbox" />
+                </td>
+                <td><b>郵遞區號</b></td>
+                <td>
+                    <input id="PostalCode" class="k-textbox" />
+                </td>
+            </tr>
+            <tr>
+                <td><span style="color:red">*</span><b>國家</b></td>
+                <td>
+                    <input id="Country" class="k-textbox" name="Country" required validationMessage="請輸入這個欄位" />
+                </td>
+                <td><span style="color:red">*</span><b>電話號碼</b></td>
+                <td>
+                    <input id="Phone" name="Phone" class="k-textbox" required validationMessage="請輸入這個欄位" />
+                </td>
+            </tr>
+            <tr>
+                <td><b>傳真</b></td>
+                <td colspan="3">
+                    <input id="Fax"  name="Fax" class="k-textbox"  />
+                </td>
+            </tr>
+
+            <tr>
+                <td></td>
+                <td colspan="3">
+                    <input id="SaveData" type="button" value="存檔">
+                    <input id="beforePage" type="button" value="回前一頁" />
+                </td>
+
+            </tr>
+        </table>
+    </form>
+</div>
+<script>
+    $(document).ready(function () {
+        //Date Validator
+        $(function () {
+            var container = $("#MyForm");
+            kendo.init(container);
+            container.kendoValidator({
+                rules: {
+                    vaildateCombobox: function (input) {
+                        if (input.is("[sign-combobox]")) {
+                            if (input.data("kendoComboBox").selectedIndex == 0) {
+                                return false;
+                            }
+                        }
+                        return true;
+                    }
+                },
+                messages: {
+                    vaildateCombobox: "請選擇這個欄位"
+                }
+            });
+        });
+
+
+
+        //button
+        $("#SaveData").kendoButton();
+        $("#beforePage").kendoButton();
+
+        //DataPicker
+        $("#CreationDate").kendoDatePicker({
+            format: "yyyy/MM/dd"
+        });
+    });
+
+
+    $("#SaveData").click(function () {
+        var validator = $("#MyForm").data("kendoValidator");
+        if (validator.validate()) {
+            console.log("aa");
+           saveData();
+        }
+    });
+
+    function saveData() {
+        $.ajax({
+            type: 'post',
+            url: '@Url.Action("InsertCustomer")',
+            data: {
+                CompanyName: $('#CompanyName').val(),
+                ContactName: $('#ContactName').val(),
+                ContactTitle: $("#ContactTitle").data("kendoComboBox").value(),
+                CreationDate: $('#CreationDate').val(),
+                BirthDate: $('#BirthDate').val(),
+                Address: $('#Address').val(),
+                City: $('#City').val(),
+                Region: $('#Region').val(),
+                PostalCode: $('#PostalCode').val(),
+                Country: $('#Country').val(),
+                Phone: $('#Phone').val(),
+                Fax: $('#Fax').val()
+            }, success: function () {
+                alert("ok");
+            }, error: function () { alert("Error"); }
+        });
+    }
+
+
+    $("#beforePage").click(function () {
+        location.href = "/Customer/QueryCustomer";
+    });
+</script>
